@@ -110,6 +110,7 @@ String[] salaB = {"Sala 133",  //1
                   "", //26
                   "" //27
                 }; 
+String mensagemModoTeste = "";                
 
 String[] modosTeste = {"MODO 1", "MODO 2", "MODO 3", "MODO 4", "MODO 5", "MODO 6"};  //1               
 // Screen Resolution of Motorola XOOM 2 = 1280 x 800 pixels.
@@ -118,6 +119,7 @@ ArrayList<APToggleButton> botoesSalas;
 //ArrayList<APToggleButton> botoesEquipos;
 ArrayList<APToggleButton> botoesModoTeste;
 APToggleButton botaoConectar;
+String connectedDevice = "";
 
 void setup(){
   orientation(LANDSCAPE);
@@ -193,7 +195,7 @@ void onClickWidget(APWidget widget){
                 b2.setChecked(false);
             } else {
               // JÁ IDENTIFIQUEI O BOTÃO CLICADO E AGORA MANDO O COMANDO RESPECTIVO.
-              sendReceiveBT.write(stringToBytesArray("#01"));  
+              //sendReceiveBT.write(stringToBytesArray("#01"));  
             }
         }
     }
@@ -203,11 +205,22 @@ void onClickWidget(APWidget widget){
             APToggleButton b2 = botoesModoTeste.get(n);
             if (b2 != b) {
                 b2.setChecked(false);
+            } else {
+              switch (n) {
+                 case 0 : { mensagemModoTeste = "MODO 1: Vista o cinto no voluntário e informe-o que A VIBRAÇÃO no cinto significa que um novo ponto de referência foi encontrado. \nEle pode clicar NO BOTÃO DO CINTO para ouví-lo. "; break; }
+                 case 1 : { mensagemModoTeste = "MODO 2: Vista o cinto no voluntário e informe-o que O BEEP do cinto significa que um novo ponto de referência foi encontrado. \nEle pode clicar NO BOTÃO DO CINTO para ouví-lo. "; break; }
+                 case 2 : { mensagemModoTeste = "MODO 3: Vista a luva  no voluntário e informe-o que A VIBRAÇÃO na luva significa que um novo ponto de referência foi encontrado. \nEle pode clicar NO BOTÃO DA LUVA para ouví-lo. "; break; }                 
+                 case 3 : { mensagemModoTeste = "MODO 4: Vista a luva  no voluntário e informe-o que O BEEP na luva significa que um novo ponto de referência foi encontrado. \nEle pode clicar NO BOTÃO DA LUVA para ouví-lo. "; break; }
+                 case 4 : { mensagemModoTeste = "MODO 5: Vista o voluntário APENAS COM OS ÓCULOS. A vibração na armação dos óculos significa que um novo ponto de referência \nfoi encontrado. Ele pode clicar NO BOTÃO DOS ÓCULOS para ouví-lo. "; break; }
+                 case 5 : { mensagemModoTeste = "MODO 6: Vista o voluntário APENAS COM OS ÓCULOS. Os pontos de referência serão informados automaticamente para\no voluntário. NÃO HAVERÁ VIBRAÇÃO OU BEEP. "; break; }
+              }
+              mensagemModoTeste += "\nLEMBRE-SE DE VERIFICAR SE O WEARABLE ESTÁ CONECTADO AO TABLET ";
             }
         } 
     }
+    
     fill(255);
-    text(b.getText(), 10, 20); //display the text in the text field
+    text(mensagemModoTeste,30,180);
   }
 }
 
@@ -294,11 +307,12 @@ public class myOwnBroadcastReceiver extends BroadcastReceiver {
       foundDevice=true;
 
       //Connect to the discovered bluetooth device 
-      if (discoveredDeviceName.equals("HAR01")) {
-        ToastMaster("Connecting to HAR01...");
+      if (discoveredDeviceName.startsWith("SG")) {
+        ToastMaster("Connecting to "+discoveredDeviceName+"...");
         unregisterReceiver(myDiscoverer);
         connectBT = new ConnectToBluetooth(discoveredDevice);
         //Connect to the the device in a new thread
+        connectedDevice = discoveredDeviceName;
         new Thread(connectBT).start();
       }
     }
@@ -352,7 +366,7 @@ public class ConnectToBluetooth implements Runnable {
     }
     catch(IOException createSocketException) {
       //Problem with creating a socket
-      Log.e("ConnectToBluetooth", "Error with Socket");
+      aviso("ConnectToBluetooth", "Error with Socket");
     }
   }
 
@@ -368,7 +382,7 @@ public class ConnectToBluetooth implements Runnable {
       scSocket=mySocket;
     } 
     catch (IOException connectException) {
-      Log.e("ConnectToBluetooth", "Error with Socket Connection");
+      aviso("ConnectToBluetooth", "Error with Socket Connection");
       try {
         mySocket.close(); //try to close the socket
       }
@@ -402,7 +416,7 @@ private class SendReceiveBytes implements Runnable {
       btOutputStream = btSocket.getOutputStream();
     } 
     catch (IOException streamError) { 
-      Log.e(TAG, "Error when getting input or output Stream");
+      aviso(TAG, "Error when getting input or output Stream");
     }
   }
 
@@ -431,7 +445,7 @@ private class SendReceiveBytes implements Runnable {
           }
         }  
       } catch (IOException e) {
-        Log.e(TAG, "Error reading from btInputStream");
+        aviso(TAG, "Error reading from btInputStream");
         break;
       }
     }
@@ -444,7 +458,7 @@ private class SendReceiveBytes implements Runnable {
       btOutputStream.write(bytes);
     } 
     catch (IOException e) { 
-      Log.e(TAG, "Error when writing to btOutputStream");
+      aviso(TAG, "Error when writing to btOutputStream");
     }
   }
 
@@ -455,7 +469,7 @@ private class SendReceiveBytes implements Runnable {
       btSocket.close();
     } 
     catch (IOException e) { 
-      Log.e(TAG, "Error when closing the btSocket");
+      aviso(TAG, "Error when closing the btSocket");
     }
   }
 }
@@ -499,5 +513,10 @@ public class PersonalDevice {
     public String toString() {
     return this.name+" ["+this.address+" - "+this.bondState+"]";
   }
+}
+
+void aviso(String origem, String msg) {
+  fill(255);
+  text(origem+ " - " + msg, 30, 760);
 }
 
