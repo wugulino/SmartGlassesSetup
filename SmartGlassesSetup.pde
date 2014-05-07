@@ -193,16 +193,7 @@ void onClickWidget(APWidget widget){
                 b2.setChecked(false);
             } else {
               // JÁ IDENTIFIQUEI O BOTÃO CLICADO E AGORA MANDO O COMANDO RESPECTIVO.
-              String turnOn = "#o1";
-              byte[] myByte = new byte[3];
-              try {
-                 myByte = turnOn.getBytes("US-ASCII");
-              } catch (Exception e) {
-                 myByte[0] = '#';
-                 myByte[1] = 'o';
-                 myByte[2] = '1';
-              }
-              sendReceiveBT.write(myByte);  
+              sendReceiveBT.write(stringToBytesArray("#01"));  
             }
         }
     }
@@ -327,6 +318,15 @@ public class myOwnBroadcastReceiver extends BroadcastReceiver {
       }
     }
   }
+}
+
+public static byte[] stringToBytesArray(String str) {
+  byte[] myByte = new byte[str.length()];
+  //  myByte = turnOn.getBytes("US-ASCII");
+  for (int n=0; n < str.length(); n++) {
+    myByte[n] = (byte) str.charAt(n);
+  } 
+  return myByte;
 }
 
 public static byte[] stringToBytesUTFCustom(String str) {
