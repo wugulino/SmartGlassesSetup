@@ -110,13 +110,15 @@ String[] salaB = {"Sala 133",  //1
                   "", //26
                   "" //27
                 }; 
+char[] ida   = { 'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','['};
+char[] volta = { 'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z','{'};
+char[] comando={ '1','2','3','4','5' /*,'6' */ };
 String mensagemModoTeste = "";                
 
-String[] modosTeste = {"MODO 1", "MODO 2", "MODO 3", "MODO 4", "MODO 5", "MODO 6"};  //1               
+String[] modosTeste = {"MODO 1", "MODO 2", "MODO 3", "MODO 4", "MODO 5" /*, "MODO 6" */};  //1               
 // Screen Resolution of Motorola XOOM 2 = 1280 x 800 pixels.
 PFont f;
 ArrayList<APToggleButton> botoesSalas;
-//ArrayList<APToggleButton> botoesEquipos;
 ArrayList<APToggleButton> botoesModoTeste;
 APToggleButton botaoConectar;
 String connectedDevice = "";
@@ -194,8 +196,10 @@ void onClickWidget(APWidget widget){
             if (b2 != b) {
                 b2.setChecked(false);
             } else {
-              // JÁ IDENTIFIQUEI O BOTÃO CLICADO E AGORA MANDO O COMANDO RESPECTIVO.
-              //sendReceiveBT.write(stringToBytesArray("#01"));  
+               // JÁ IDENTIFIQUEI O BOTÃO CLICADO E AGORA MANDO O COMANDO RESPECTIVO.
+               if (BTisConnected) {
+                 sendReceiveBT.write(stringToBytesArray(String.valueOf(ida[n])));
+               }
             }
         }
     }
@@ -211,10 +215,13 @@ void onClickWidget(APWidget widget){
                  case 1 : { mensagemModoTeste = "MODO 2: Vista o cinto no voluntário e informe-o que O BEEP do cinto significa que um novo ponto de referência foi encontrado. \nEle pode clicar NO BOTÃO DO CINTO para ouví-lo. "; break; }
                  case 2 : { mensagemModoTeste = "MODO 3: Vista a luva  no voluntário e informe-o que A VIBRAÇÃO na luva significa que um novo ponto de referência foi encontrado. \nEle pode clicar NO BOTÃO DA LUVA para ouví-lo. "; break; }                 
                  case 3 : { mensagemModoTeste = "MODO 4: Vista a luva  no voluntário e informe-o que O BEEP na luva significa que um novo ponto de referência foi encontrado. \nEle pode clicar NO BOTÃO DA LUVA para ouví-lo. "; break; }
-                 case 4 : { mensagemModoTeste = "MODO 5: Vista o voluntário APENAS COM OS ÓCULOS. A vibração na armação dos óculos significa que um novo ponto de referência \nfoi encontrado. Ele pode clicar NO BOTÃO DOS ÓCULOS para ouví-lo. "; break; }
-                 case 5 : { mensagemModoTeste = "MODO 6: Vista o voluntário APENAS COM OS ÓCULOS. Os pontos de referência serão informados automaticamente para\no voluntário. NÃO HAVERÁ VIBRAÇÃO OU BEEP. "; break; }
+                 case 4 : { mensagemModoTeste = "MODO 5: Vista o voluntário APENAS COM OS ÓCULOS. Os pontos de referência serão informados automaticamente para\no voluntário. NÃO HAVERÁ VIBRAÇÃO OU BEEP. "; break; }
+                 //case 4 : { mensagemModoTeste = "MODO 5: Vista o voluntário APENAS COM OS ÓCULOS. A vibração na armação dos óculos significa que um novo ponto de referência \nfoi encontrado. Ele pode clicar NO BOTÃO DOS ÓCULOS para ouví-lo. "; break; }
               }
               mensagemModoTeste += "\nLEMBRE-SE DE VERIFICAR SE O WEARABLE ESTÁ CONECTADO AO TABLET ";
+              if (BTisConnected) {
+                 sendReceiveBT.write(stringToBytesArray(String.valueOf(comando[n])));
+              }
             }
         } 
     }
@@ -274,7 +281,7 @@ public class myOwnBroadcastReceiver extends BroadcastReceiver {
   @Override
     public void onReceive(Context context, Intent intent) {
     String action=intent.getAction();
-    ToastMaster("ACTION:" + action);
+    //ToastMaster("ACTION:" + action);
 
     //Notification that BluetoothDevice is FOUND
     if (BluetoothDevice.ACTION_FOUND.equals(action)) {
@@ -320,16 +327,21 @@ public class myOwnBroadcastReceiver extends BroadcastReceiver {
     //Notification if bluetooth device is connected
     if (BluetoothDevice.ACTION_ACL_CONNECTED.equals(action)) {
       ToastMaster("Bluetooth conectado!");
-
+      botaoConectar.setChecked(true);
       while (scSocket==null) {
         //do nothing
       }
-      //ToastMaster("scSocket" + scSocket);
-      BTisConnected=true; //turn screen purple 
+
+      BTisConnected = true;  
       if (scSocket!=null) {
         sendReceiveBT = new SendReceiveBytes(scSocket);
         new Thread(sendReceiveBT).start();
       }
+    }
+    if (BluetoothDevice.ACTION_ACL_DISCONNECTED.equals(action)) {
+      ToastMaster("Bluetooth DESCONECTADO!");
+      BTisConnected = false;
+      botaoConectar.setChecked(false);
     }
   }
 }
