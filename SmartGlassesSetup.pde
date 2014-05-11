@@ -58,7 +58,7 @@ String[] salaA = {"Sala 117c", //1
                   "Sala 117b", //2
                   "Sala 117a", //3
                   "Sala 115",  //4
-                  "Sala 113",  //5
+                  "Sala 113 (Rachel)",  //5
                   "Sala 111",  //6
                   "Sala 109",  //7
                   "Sala 107",  //8
@@ -66,7 +66,7 @@ String[] salaA = {"Sala 117c", //1
                   "Sala 103",  //10
                   "Lojinha",   //11
                   "Troféus",   //12
-                  "Entrada / NUTAP",  //13     
+                  "Entrada / NUCAPE",  //13     
                   "Sala 128",  //14
                   "Sala 130",  //15
                   "Sala 132",  //16
@@ -78,7 +78,7 @@ String[] salaA = {"Sala 117c", //1
                   "Sala 142",       //22
                   "Sala 144-S.Social", //23
                   "",  //24
-                  "Sala 146",   //25
+                  "Sala 144",   //25
                   "Sala 146",   //26
                   "Salas 148 e 150" //27
                   };
@@ -109,10 +109,10 @@ String[] salaB = {"Sala 133",  //1
                   "Sala 126-DPMO", //25
                   "", //26
                   "" //27
-                }; 
-char[] ida   = { 'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','['};
-char[] volta = { 'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z','{'};
-char[] comando={ '1','2','3','4','5' /*,'6' */ };
+                };                                               //BUG
+char[] ida   = { 'A','B','C','D','E','F','G','H','I','J','K','L','M','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','['};
+char[] volta = { 'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','q','r','s','t','u','v','w','x','y','z','{'};
+char[] comando={ '1','2','3','4','5' /*,'6' */ };                                //BUG
 String mensagemModoTeste = "";                
 
 String[] modosTeste = {"MODO 1", "MODO 2", "MODO 3", "MODO 4", "MODO 5" /*, "MODO 6" */};  //1               
@@ -121,6 +121,7 @@ PFont f;
 ArrayList<APToggleButton> botoesSalas;
 ArrayList<APToggleButton> botoesModoTeste;
 APToggleButton botaoConectar;
+APToggleButton botaoIda, botaoVolta;
 String connectedDevice = "";
 
 void setup(){
@@ -148,6 +149,10 @@ void setup(){
   posX = 20;
   posY = 260;
   botoesSalas = new ArrayList<APToggleButton>();
+  
+  botaoIda = new APToggleButton(posX, posY, 100, 100, "(IDA) -->"); 
+  widgetContainer.addWidget(botaoIda);
+  posX += 110;
   for (int n=0; n < salaA.length; n++) {
     button = new APToggleButton(posX, posY, 100, 100, salaA[n]+"\n"+salaB[n]); //create new button from x- and y-pos., width, height and label
     botoesSalas.add(button);
@@ -158,6 +163,10 @@ void setup(){
     }
     widgetContainer.addWidget(button);
   }  
+  
+  botaoVolta = new APToggleButton(posX, posY, 100, 100, " <-- VOLTA");
+  widgetContainer.addWidget(botaoVolta);
+  
   background(0);
   
   /*SE o Bluetooth NÃO ESTÁ HABILITADO então peço autorização ao usuário para habilitá-lo*/
@@ -190,6 +199,12 @@ void onClickWidget(APWidget widget){
   if (widget instanceof APToggleButton) {
     background(0);
     APToggleButton b = (APToggleButton) widget;
+    
+    if (b == botaoIda) {
+       botaoVolta.setChecked(!botaoIda.isChecked());
+    } else if (b == botaoVolta) {
+       botaoIda.setChecked(!botaoVolta.isChecked());
+    }
     if (botoesSalas.contains(b)) {
         for (int n=0; n< botoesSalas.size(); n++){
             APToggleButton b2 = botoesSalas.get(n);
@@ -198,7 +213,17 @@ void onClickWidget(APWidget widget){
             } else {
                // JÁ IDENTIFIQUEI O BOTÃO CLICADO E AGORA MANDO O COMANDO RESPECTIVO.
                if (BTisConnected) {
-                 sendReceiveBT.write(stringToBytesArray(String.valueOf(ida[n])));
+                 if (botaoIda.isChecked()){
+                   try {
+                      sendReceiveBT.write(stringToBytesArray(String.valueOf(ida[n])));
+                   } catch (Exception e) {
+                   }
+                 } else {
+                   try {
+                      sendReceiveBT.write(stringToBytesArray(String.valueOf(volta[n])));
+                   } catch (Exception e) {
+                   }
+                 }
                }
             }
         }
@@ -425,11 +450,14 @@ private class SendReceiveBytes implements Runnable {
     btSocket = socket;
     try {
       btInputStream = btSocket.getInputStream();
-      btOutputStream = btSocket.getOutputStream();
-    } 
-    catch (IOException streamError) { 
-      aviso(TAG, "Error when getting input or output Stream");
+    } catch (Exception e) {
+      aviso(TAG, "Erro when getting inputStream");
     }
+    try{
+      btOutputStream = btSocket.getOutputStream();
+    } catch (Exception e) {
+      aviso(TAG, "Erro when getting outputStream");
+    } 
   }
 
 
@@ -529,6 +557,6 @@ public class PersonalDevice {
 
 void aviso(String origem, String msg) {
   fill(255);
-  text(origem+ " - " + msg, 30, 760);
+  text(origem+ " - " + msg, 30, 700);
 }
 
